@@ -433,17 +433,19 @@
             
             // Dados Motorista
             currentY = drawSection("DADOS DO MOTORISTA E VEÍCULO", currentY);
-            doc.text(`Nome: ${document.getElementById('motorista_nome').value}`, 45, currentY);
-            doc.text(`CPF: ${document.getElementById('motorista_cpf').value} | RA: ${document.getElementById('motorista_ra').value} | Saram: ${document.getElementById('motorista_saram').value}`, 45, currentY + 15);
-            doc.text(`Veículo: ${document.getElementById('veiculo_modelo').value} | REG FAB: ${document.getElementById('veiculo_reg').value} | Placa: ${document.getElementById('veiculo_placa').value}`, 45, currentY + 30);
-            currentY += 45;
+            currentY += 5; // Espaço extra após o título
+            doc.text(`Nome: ${document.getElementById('motorista_nome').value}`, 45, currentY + 10);
+            doc.text(`CPF: ${document.getElementById('motorista_cpf').value} | RA: ${document.getElementById('motorista_ra').value} | Saram: ${document.getElementById('motorista_saram').value}`, 45, currentY + 25);
+            doc.text(`Veículo: ${document.getElementById('veiculo_modelo').value} | REG FAB: ${document.getElementById('veiculo_reg').value} | Placa: ${document.getElementById('veiculo_placa').value}`, 45, currentY + 40);
+            currentY += 60;
 
             // Dados Viagem
             currentY = drawSection("DADOS DA VIAGEM", currentY);
-            doc.text(`Origem: ${document.getElementById('viagem_origem').value} | Destino: ${document.getElementById('viagem_destino').value}`, 45, currentY);
-            doc.text(`Saída: ${document.getElementById('saida_data').value} ${document.getElementById('saida_hora').value} (KM: ${document.getElementById('saida_km').value})`, 45, currentY + 15);
-            doc.text(`Chegada: ${document.getElementById('chegada_data').value} ${document.getElementById('chegada_hora').value} (KM: ${document.getElementById('chegada_km').value})`, 45, currentY + 30);
-            currentY += 40;
+            currentY += 5; // Espaço extra após o título
+            doc.text(`Origem: ${document.getElementById('viagem_origem').value} | Destino: ${document.getElementById('viagem_destino').value}`, 45, currentY + 10);
+            doc.text(`Saída: ${document.getElementById('saida_data').value} ${document.getElementById('saida_hora').value} (KM: ${document.getElementById('saida_km').value})`, 45, currentY + 25);
+            doc.text(`Chegada: ${document.getElementById('chegada_data').value} ${document.getElementById('chegada_hora').value} (KM: ${document.getElementById('chegada_km').value})`, 45, currentY + 40);
+            currentY += 55;
 
             // Tabelas de Etapas
             currentY = drawSection("ETAPAS DA MISSÃO", currentY);
