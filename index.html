@@ -446,6 +446,7 @@
             currentY += 40;
 
             // Tabelas de Etapas
+            currentY = drawSection("ETAPAS DA MISSÃO", currentY);
             doc.autoTable({
                 startY: currentY,
                 head: [['Etapa', 'Data', 'Local', 'Etapa', 'Data', 'Local']],
@@ -463,8 +464,11 @@
             });
 
             // Combustível
+            currentY = doc.lastAutoTable.finalY + 15;
+            if(currentY > 700) { doc.addPage(); currentY = 40; }
+            currentY = drawSection("DADOS DO COMBUSTÍVEL", currentY);
             doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 15,
+                startY: currentY,
                 head: [['Nº', 'OM', 'Data', 'KM', 'Litros', 'Arla', 'Abastecedor']],
                 body: Array.from(document.getElementById('combustivel_corpo').rows).map(r => 
                     Array.from(r.cells).map(c => c.firstChild?.value || c.innerText)
@@ -475,8 +479,11 @@
             });
 
             // Cargas
+            currentY = doc.lastAutoTable.finalY + 15;
+            if(currentY > 700) { doc.addPage(); currentY = 40; }
+            currentY = drawSection("RESUMO DE CARGAS TRANSPORTADAS", currentY);
             doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 15,
+                startY: currentY,
                 head: [['Nº', 'Manifesto/GMV', 'Data', 'Peso', 'Cubagem', 'Itens', 'Recebedor']],
                 body: Array.from(document.getElementById('cargas_corpo').rows).map(r => 
                     Array.from(r.cells).map(c => c.firstChild?.value || c.innerText)
@@ -493,6 +500,19 @@
             doc.setFontSize(9);
             const obs = document.getElementById('observacoes').value || "Sem ocorrências";
             doc.text(doc.splitTextToSize(obs, 500), 45, currentY + 10);
+            
+            // Assinaturas no PDF
+            currentY += 80;
+            if(currentY > 750) { doc.addPage(); currentY = 60; }
+            
+            doc.setDrawColor(0);
+            doc.line(60, currentY, 260, currentY); // Linha Motorista
+            doc.line(335, currentY, 535, currentY); // Linha Oficial
+            
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'bold');
+            doc.text("ASSINATURA DO MOTORISTA", 160, currentY + 15, { align: 'center' });
+            doc.text("NOME E ASSINATURA DO OFICIAL DA STRL", 435, currentY + 15, { align: 'center' });
 
             doc.save(`Relatorio_Viagem_${relNum}_${relAno}.pdf`);
         }
