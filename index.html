@@ -112,7 +112,7 @@
                     Nº <input type="text" id="relatorio_num" class="w-12 border-none bg-transparent text-center focus:ring-0" placeholder="000"> / STRL / <input type="text" id="relatorio_ano" class="w-16 border-none bg-transparent text-center focus:ring-0" value="2025">
                 </div>
                 <div class="bg-gray-50 px-3 py-1 rounded-full border">
-                    OS Nº <input type="text" id="os_num" class="w-16 border-none bg-transparent text-center focus:ring-0" placeholder="0000"> / CELOG / 2025
+                    OS Nº <input type="text" id="os_num" class="w-16 border-none bg-transparent text-center focus:ring-0" placeholder="0000"> / CELOG / <input type="text" id="os_ano" class="w-16 border-none bg-transparent text-center focus:ring-0" value="2025">
                 </div>
             </div>
         </div>
@@ -416,7 +416,8 @@
             const relNum = document.getElementById('relatorio_num').value || '___';
             const relAno = document.getElementById('relatorio_ano').value || '2025';
             const osNum = document.getElementById('os_num').value || '____';
-            doc.text(`Nº ${relNum}/STRL/${relAno} - Missão OS Nº ${osNum}/CELOG/2025`, pageWidth/2, 80, { align: 'center' });
+            const osAno = document.getElementById('os_ano').value || '2025';
+            doc.text(`Nº ${relNum}/STRL/${relAno} - Missão OS Nº ${osNum}/CELOG/${osAno}`, pageWidth/2, 80, { align: 'center' });
 
             // Helper para seções
             const drawSection = (title, y) => {
@@ -505,7 +506,7 @@
                 ["CENTRO DE LOGÍSTICO DA AERONÁUTICA"],
                 ["Ficha de Motorista Relatório de Viagem"],
                 ["Relatório Nº", document.getElementById('relatorio_num').value, "Ano", document.getElementById('relatorio_ano').value],
-                ["OS Nº", document.getElementById('os_num').value],
+                ["OS Nº", document.getElementById('os_num').value, "Ano OS", document.getElementById('os_ano').value],
                 [],
                 ["DADOS DO MOTORISTA"],
                 ["Nome", document.getElementById('motorista_nome').value],
