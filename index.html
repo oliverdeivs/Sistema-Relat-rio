@@ -3,33 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório de Viagem - CELOG</title>
+    <title>Sistema CELOG - Relatórios e Cadastros</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         @media print {
-            .no-print { display: none; }
+            .no-print { display: none !important; }
             body { padding: 0; margin: 0; background: white; }
             .max-w-5xl { max-width: 100% !important; border: none !important; box-shadow: none !important; }
         }
         
-        /* Estilos para inputs e tabelas */
         input, select, textarea {
             border: 1px solid #d1d5db;
-            padding: 6px;
-            border-radius: 4px;
+            padding: 8px;
+            border-radius: 6px;
             width: 100%;
             font-size: 14px;
         }
         
-        input:focus {
-            border-color: #3b82f6;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-        }
-
         .section-title {
             background-color: #f3f4f6;
             font-weight: bold;
@@ -40,33 +33,24 @@
             text-transform: uppercase;
         }
 
-        /* Container de tabela com scroll horizontal para mobile */
         .table-container {
             width: 100%;
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
             margin-top: 8px;
             border: 1px solid #e5e7eb;
-            border-radius: 4px;
+            border-radius: 6px;
         }
 
         table {
-            min-width: 600px; /* Garante que a tabela não esprema demais */
+            min-width: 600px;
             width: 100%;
             border-collapse: collapse;
-        }
-
-        @media (min-width: 768px) {
-            table {
-                min-width: 100%;
-            }
         }
 
         table th {
             background-color: #f8fafc;
             font-size: 0.7rem;
             padding: 8px 4px;
-            text-align: center;
             border: 1px solid #e2e8f0;
         }
 
@@ -78,456 +62,511 @@
         table input {
             border: none !important;
             border-radius: 0 !important;
-            padding: 8px 4px !important;
         }
 
-        /* Ajustes específicos para campos inline no mobile */
-        .mobile-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
+        .nav-link {
+            transition: all 0.3s;
+        }
+        
+        .nav-link.active {
+            background-color: #1e40af;
+            color: white;
         }
 
-        @media (min-width: 640px) {
-            .mobile-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .page {
+            display: none;
         }
 
-        @media (min-width: 1024px) {
-            .mobile-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
+        .page.active {
+            display: block;
         }
     </style>
 </head>
-<body class="bg-slate-100 p-2 sm:p-4 md:p-8">
-    <div class="max-w-5xl mx-auto bg-white p-4 sm:p-8 shadow-xl rounded-xl border border-gray-200">
-        <!-- Header -->
-        <div class="text-center mb-8 border-b-2 pb-6">
-            <h1 class="text-lg sm:text-2xl font-black text-blue-900 uppercase tracking-tight">Centro de Logístico da Aeronáutica</h1>
-            <h2 class="text-md sm:text-xl font-bold text-gray-700 mt-1">Ficha de Motorista Relatório de Viagem</h2>
-            <div class="flex flex-col sm:flex-row justify-center gap-2 sm:gap-8 mt-4 text-sm font-semibold">
-                <div class="bg-gray-50 px-3 py-1 rounded-full border">
-                    Nº <input type="text" id="relatorio_num" class="w-12 border-none bg-transparent text-center focus:ring-0" placeholder="000"> / STRL / <input type="text" id="relatorio_ano" class="w-16 border-none bg-transparent text-center focus:ring-0" value="2025">
-                </div>
-                <div class="bg-gray-50 px-3 py-1 rounded-full border">
-                    OS Nº <input type="text" id="os_num" class="w-16 border-none bg-transparent text-center focus:ring-0" placeholder="0000"> / CELOG / 2025
+<body class="bg-slate-100 min-h-screen">
+    
+    <!-- Menu de Navegação Superior -->
+    <nav class="bg-blue-900 text-white shadow-lg no-print sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="font-black text-xl tracking-tighter">CELOG LOG</div>
+                <div class="flex space-x-2">
+                    <button onclick="showPage('relatorio')" id="btn-relatorio" class="nav-link px-4 py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-blue-800 active uppercase">Relatório de Viagem</button>
+                    <button onclick="showPage('cadastro')" id="btn-cadastro" class="nav-link px-4 py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-blue-800 uppercase">Identificação Motorista</button>
                 </div>
             </div>
         </div>
+    </nav>
 
-        <form id="reportForm" class="space-y-6">
-            <!-- Dados do Motorista -->
-            <div>
-                <div class="section-title">DADOS DO MOTORISTA E VEÍCULO</div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-600">Nome Completo</label>
-                        <input type="text" id="motorista_nome" placeholder="Nome do motorista">
+    <div class="max-w-5xl mx-auto p-2 sm:p-4 md:p-8">
+        
+        <!-- PÁGINA: IDENTIFICAÇÃO DE MOTORISTA E CAMINHÃO (CADASTRO) -->
+        <div id="page-cadastro" class="page bg-white p-6 sm:p-10 shadow-xl rounded-xl border border-gray-200">
+            <div class="text-center mb-10 border-b pb-8">
+                <h1 class="text-2xl sm:text-3xl font-black text-blue-900 uppercase">Identificação de Motorista e Caminhão</h1>
+                <p class="text-gray-500 mt-2">Formulário de identificação e controle de acesso</p>
+            </div>
+
+            <form id="formCadastro" class="space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Nome do Motorista</label>
+                        <input type="text" id="cad_nome" placeholder="Digite o nome completo" class="bg-gray-50">
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-gray-600">CPF</label>
-                            <input type="text" id="motorista_cpf" placeholder="000.000.000-00">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-gray-600">RA</label>
-                            <input type="text" id="motorista_ra" placeholder="RA">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-gray-600">Saram</label>
-                            <input type="text" id="motorista_saram" placeholder="Saram">
-                        </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Qual tipo de missão será</label>
+                        <input type="text" id="cad_missao" placeholder="Ex: Transporte de Carga, Puxe, etc." class="bg-gray-50">
                     </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-600">Modelo do Veículo</label>
-                        <input type="text" id="veiculo_modelo" placeholder="Ex: VW Constellation">
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Placa do Cavalo Mecânico</label>
+                        <input type="text" id="cad_placa_cavalo" placeholder="ABC-1234" class="bg-gray-50">
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-gray-600">REG FAB</label>
-                            <input type="text" id="veiculo_reg" placeholder="Registro">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-xs font-bold text-gray-600">Placa</label>
-                            <input type="text" id="veiculo_placa" placeholder="ABC-1234">
-                        </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Placa do Semirreboque</label>
+                        <input type="text" id="cad_placa_reboque" placeholder="XYZ-5678" class="bg-gray-50">
+                    </div>
+                </div>
+
+                <div class="pt-10 border-t flex flex-col sm:flex-row justify-center gap-4">
+                    <button type="button" onclick="gerarPDFCadastro()" class="bg-red-600 text-white px-10 py-4 rounded-lg font-black shadow-lg hover:bg-red-700 transition flex items-center justify-center gap-2 uppercase">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        Baixar PDF de Identificação
+                    </button>
+                    <button type="reset" class="bg-gray-200 text-gray-700 px-10 py-4 rounded-lg font-bold hover:bg-gray-300 transition uppercase">Limpar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- PÁGINA: RELATÓRIO DE VIAGEM (ORIGINAL FIEL) -->
+        <div id="page-relatorio" class="page active bg-white p-4 sm:p-8 shadow-xl rounded-xl border border-gray-200">
+            <div class="text-center mb-8 border-b-2 pb-6">
+                <h1 class="text-lg sm:text-2xl font-black text-blue-900 uppercase">Centro de Logístico da Aeronáutica</h1>
+                <h2 class="text-md sm:text-xl font-bold text-gray-700 mt-1">Ficha de Motorista Relatório de Viagem</h2>
+                
+                <div class="flex flex-col sm:flex-row justify-center gap-2 sm:gap-8 mt-6 text-sm font-semibold">
+                    <div class="bg-gray-50 px-3 py-1 rounded-full border">
+                        Nº <input type="text" id="relatorio_num" class="w-12 border-none bg-transparent text-center focus:ring-0" placeholder="000"> / STRL / <input type="text" id="relatorio_ano" class="w-16 border-none bg-transparent text-center focus:ring-0" value="2025">
+                    </div>
+                    <div class="bg-gray-50 px-3 py-1 rounded-full border">
+                        OS Nº <input type="text" id="os_num" class="w-16 border-none bg-transparent text-center focus:ring-0" placeholder="0000"> / CELOG / <input type="text" id="os_ano" class="w-16 border-none bg-transparent text-center focus:ring-0" value="2025">
                     </div>
                 </div>
             </div>
 
-            <!-- Dados da Viagem -->
-            <div>
-                <div class="section-title">DADOS DA VIAGEM</div>
-                <div class="mt-4 space-y-4">
-                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                        <span class="text-xs font-bold text-blue-800 block mb-2 uppercase">Tipo de Missão</span>
-                        <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="missao" value="Desembaraço" class="w-4 h-4"> Desembaraço</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="missao" value="Transporte de Carga" class="w-4 h-4"> Transporte</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="missao" value="Contêiner Devolução" class="w-4 h-4"> Devolução</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="missao" value="Contêiner Puxe" class="w-4 h-4"> Puxe</label>
-                            <div class="flex items-center gap-2 w-full sm:w-auto">
-                                <span class="whitespace-nowrap">Outras:</span>
-                                <input type="text" id="missao_outras" class="border-b border-t-0 border-x-0 rounded-none bg-transparent py-0 focus:ring-0">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="bg-gray-50 p-3 rounded border">
-                            <span class="text-xs font-bold text-gray-600 block mb-2 uppercase">Saída</span>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <input type="date" id="saida_data">
-                                <input type="time" id="saida_hora">
-                                <input type="number" id="saida_km" placeholder="KM">
-                            </div>
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded border">
-                            <span class="text-xs font-bold text-gray-600 block mb-2 uppercase">Chegada</span>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <input type="date" id="chegada_data">
-                                <input type="time" id="chegada_hora">
-                                <input type="number" id="chegada_km" placeholder="KM">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form id="reportForm" class="space-y-6">
+                <!-- Dados do Motorista -->
+                <div>
+                    <div class="section-title">DADOS DO MOTORISTA E VEÍCULO</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div class="space-y-1">
-                            <label class="text-xs font-bold text-gray-600 uppercase">Origem</label>
-                            <input type="text" id="viagem_origem" placeholder="Cidade/UF de origem">
+                            <label class="text-xs font-bold text-gray-600 uppercase">Nome Completo</label>
+                            <input type="text" id="motorista_nome">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-gray-600 uppercase">CPF</label>
+                                <input type="text" id="motorista_cpf">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-gray-600 uppercase">RA</label>
+                                <input type="text" id="motorista_ra">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-gray-600 uppercase">Saram</label>
+                                <input type="text" id="motorista_saram">
+                            </div>
                         </div>
                         <div class="space-y-1">
-                            <label class="text-xs font-bold text-gray-600 uppercase">Destino</label>
-                            <input type="text" id="viagem_destino" placeholder="Cidade/UF de destino">
+                            <label class="text-xs font-bold text-gray-600 uppercase">Modelo do Veículo</label>
+                            <input type="text" id="veiculo_modelo">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-gray-600 uppercase">REG FAB</label>
+                                <input type="text" id="veiculo_reg">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-gray-600 uppercase">Placa</label>
+                                <input type="text" id="veiculo_placa">
+                            </div>
                         </div>
                     </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-600 uppercase">Pernoites (Cidades/Estados visitados)</label>
-                        <input type="text" id="pernoites" placeholder="Descreva os locais de pernoite">
-                    </div>
                 </div>
-            </div>
 
-            <!-- Etapas -->
-            <div>
-                <div class="section-title">ETAPAS DA MISSÃO</div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th width="15%">Etapa</th>
-                                    <th width="35%">Data</th>
-                                    <th width="50%">Local</th>
-                                </tr>
-                            </thead>
-                            <tbody id="etapas_1"></tbody>
-                        </table>
-                    </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th width="15%">Etapa</th>
-                                    <th width="35%">Data</th>
-                                    <th width="50%">Local</th>
-                                </tr>
-                            </thead>
-                            <tbody id="etapas_2"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                <!-- Dados da Viagem -->
+                <div>
+                    <div class="section-title">DADOS DA VIAGEM</div>
+                    <div class="mt-4 space-y-4">
+                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                            <span class="text-xs font-bold text-blue-800 block mb-2 uppercase">Tipo de Missão</span>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="missao" value="Desembaraço" class="w-4 h-4"> Desembaraço</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="missao" value="Transporte de Carga" class="w-4 h-4"> Transporte</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="missao" value="Contêiner Devolução" class="w-4 h-4"> Devolução</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="missao" value="Contêiner Puxe" class="w-4 h-4"> Puxe</label>
+                                <div class="flex items-center gap-2 w-full sm:w-auto">
+                                    <span class="whitespace-nowrap">Outras:</span>
+                                    <input type="text" id="missao_outras" class="border-b border-t-0 border-x-0 rounded-none bg-transparent py-0 focus:ring-0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-gray-50 p-3 rounded border">
+                                <span class="text-xs font-bold text-gray-600 block mb-2 uppercase">Saída</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <input type="date" id="saida_data">
+                                    <input type="time" id="saida_hora">
+                                    <input type="number" id="saida_km" placeholder="KM">
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded border">
+                                <span class="text-xs font-bold text-gray-600 block mb-2 uppercase">Chegada</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <input type="date" id="chegada_data">
+                                    <input type="time" id="chegada_hora">
+                                    <input type="number" id="chegada_km" placeholder="KM">
+                                </div>
+                            </div>
+                        </div>
 
-            <!-- Combustível -->
-            <div>
-                <div class="section-title">DADOS DO COMBUSTÍVEL</div>
-                <div class="mt-4">
-                    <div class="flex flex-wrap gap-4 mb-4 bg-gray-50 p-3 rounded border">
-                        <span class="text-xs font-bold text-gray-600 uppercase">Tipo:</span>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="combustivel_tipo" value="Gasolina" class="w-4 h-4"> Gasolina</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="combustivel_tipo" value="Etanol" class="w-4 h-4"> Etanol</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="combustivel_tipo" value="Diesel" class="w-4 h-4"> Diesel</label>
-                        <div class="flex items-center gap-2">
-                            <span>Outro:</span>
-                            <input type="text" id="combustivel_outro" class="border-b border-t-0 border-x-0 rounded-none bg-transparent py-0 focus:ring-0 w-24">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-gray-600 uppercase">Origem</label>
+                                <input type="text" id="viagem_origem">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-gray-600 uppercase">Destino</label>
+                                <input type="text" id="viagem_destino">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-gray-600 uppercase tracking-tight">Pernoites (Cidades/Estados visitados, se aplicável)</label>
+                            <input type="text" id="pernoites">
                         </div>
                     </div>
+                </div>
+
+                <!-- Etapas -->
+                <div>
+                    <div class="section-title">ETAPAS DA MISSÃO</div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th width="15%">Etapa</th>
+                                        <th width="35%">Data</th>
+                                        <th width="50%">Local</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="etapas_1"></tbody>
+                            </table>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th width="15%">Etapa</th>
+                                        <th width="35%">Data</th>
+                                        <th width="50%">Local</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="etapas_2"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Combustível -->
+                <div>
+                    <div class="section-title">DADOS DO COMBUSTÍVEL</div>
+                    <div class="mt-4">
+                        <div class="flex flex-wrap gap-4 mb-4 bg-gray-50 p-3 rounded border">
+                            <span class="text-xs font-bold text-gray-600 uppercase">Tipo:</span>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="combustivel_tipo" value="Gasolina" class="w-4 h-4"> Gasolina</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="combustivel_tipo" value="Etanol" class="w-4 h-4"> Etanol</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="combustivel_tipo" value="Diesel" class="w-4 h-4"> Diesel</label>
+                            <div class="flex items-center gap-2">
+                                <span>Outro:</span>
+                                <input type="text" id="combustivel_outro" class="border-b border-t-0 border-x-0 rounded-none bg-transparent py-0 focus:ring-0 w-24">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="text-xs">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">Nº</th>
+                                        <th width="15%">OM</th>
+                                        <th width="20%">Data</th>
+                                        <th width="15%">KM</th>
+                                        <th width="10%">Litros</th>
+                                        <th width="10%">Arla</th>
+                                        <th width="25%">Abastecedor</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="combustivel_corpo"></tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-end items-center gap-4">
+                            <span class="font-bold text-gray-700">Quantidade Total Abastecida:</span>
+                            <div class="w-32">
+                                <input type="number" id="total_abastecido" class="text-right font-bold text-blue-700" placeholder="0.00">
+                            </div>
+                            <span class="font-bold">L</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cargas -->
+                <div>
+                    <div class="section-title">RESUMO DE CARGAS TRANSPORTADAS</div>
                     <div class="table-container">
                         <table class="text-xs">
                             <thead>
                                 <tr>
                                     <th width="5%">Nº</th>
-                                    <th width="15%">OM</th>
-                                    <th width="20%">Data</th>
-                                    <th width="15%">KM</th>
-                                    <th width="10%">Litros</th>
-                                    <th width="10%">Arla</th>
-                                    <th width="25%">Abastecedor</th>
+                                    <th width="20%">Manifesto/GMV</th>
+                                    <th width="15%">Data</th>
+                                    <th width="10%">Peso</th>
+                                    <th width="10%">Cubagem</th>
+                                    <th width="15%">Itens</th>
+                                    <th width="25%">Quem Recebeu/OM</th>
                                 </tr>
                             </thead>
-                            <tbody id="combustivel_corpo"></tbody>
+                            <tbody id="cargas_corpo"></tbody>
                         </table>
                     </div>
-                    <div class="mt-4 flex justify-end items-center gap-4">
-                        <span class="font-bold text-gray-700">Quantidade Total Abastecida:</span>
-                        <div class="w-32">
-                            <input type="number" id="total_abastecido" class="text-right font-bold text-blue-700" placeholder="0.00">
+                </div>
+
+                <!-- Observações -->
+                <div>
+                    <div class="section-title">OBSERVAÇÕES E INCIDENTES</div>
+                    <div class="mt-4 space-y-4">
+                        <div class="flex gap-6 p-3 bg-gray-50 rounded border">
+                            <label class="flex items-center gap-2 cursor-pointer font-semibold text-gray-700"><input type="radio" name="ocorrencia" value="Sem ocorrências" checked class="w-4 h-4"> Sem ocorrências</label>
+                            <label class="flex items-center gap-2 cursor-pointer font-semibold text-gray-700"><input type="radio" name="ocorrencia" value="Com ocorrências" class="w-4 h-4"> Com ocorrências</label>
                         </div>
-                        <span class="font-bold">L</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cargas -->
-            <div>
-                <div class="section-title">RESUMO DE CARGAS TRANSPORTADAS</div>
-                <div class="table-container">
-                    <table class="text-xs">
-                        <thead>
-                            <tr>
-                                <th width="5%">Nº</th>
-                                <th width="20%">Manifesto/GMV</th>
-                                <th width="15%">Data</th>
-                                <th width="10%">Peso</th>
-                                <th width="10%">Cubagem</th>
-                                <th width="15%">Itens</th>
-                                <th width="25%">Quem Recebeu/OM</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cargas_corpo"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Observações -->
-            <div>
-                <div class="section-title">OBSERVAÇÕES E INCIDENTES</div>
-                <div class="mt-4 space-y-4">
-                    <div class="flex gap-6 p-3 bg-gray-50 rounded border">
-                        <label class="flex items-center gap-2 cursor-pointer font-semibold text-gray-700"><input type="radio" name="ocorrencia" value="Sem ocorrências" checked class="w-4 h-4"> Sem ocorrências</label>
-                        <label class="flex items-center gap-2 cursor-pointer font-semibold text-gray-700"><input type="radio" name="ocorrencia" value="Com ocorrências" class="w-4 h-4"> Com ocorrências</label>
-                    </div>
-                    <textarea id="observacoes" class="w-full h-32 p-3 border border-gray-300 rounded-lg shadow-inner" placeholder="Descreva aqui qualquer incidente, avaria ou observação relevante da missão..."></textarea>
-                    
-                    <div class="bg-red-50 p-4 rounded-lg border border-red-200 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                        <div class="bg-red-600 text-white p-2 rounded font-bold text-xs uppercase animate-pulse">Emergência</div>
-                        <div class="text-xs text-red-900 leading-relaxed">
-                            <strong>MECÂNICA:</strong> Peça Oil Distribuidora Ltda | CNPJ: 34.043.125/0001-10<br>
-                            Praia da Jequiá, 25 - Ribeira, Ilha do Governador, RJ | <strong>STRL: (11) 3382-5259</strong>
+                        <textarea id="observacoes" class="w-full h-32 p-3 border border-gray-300 rounded-lg shadow-inner"></textarea>
+                        
+                        <div class="bg-red-50 p-4 rounded-lg border border-red-200 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                            <div class="bg-red-600 text-white p-2 rounded font-bold text-xs uppercase">Emergência</div>
+                            <div class="text-xs text-red-900 leading-relaxed">
+                                <strong>MECÂNICA:</strong> Peça Oil Distribuidora Ltda | CNPJ: 34.043.125/0001-10<br>
+                                Praia da Jequiá, 25 - Ribeira, RJ | <strong>STRL: (11) 3382-5259</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Assinaturas -->
-            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-12 pt-8">
-                <div class="text-center space-y-4">
-                    <div class="h-16 flex items-end justify-center">
-                        <div class="w-64 border-b border-gray-400"></div>
+                <!-- Assinaturas -->
+                <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-12 pt-8">
+                    <div class="text-center space-y-4">
+                        <div class="h-16 flex items-end justify-center">
+                            <div class="w-64 border-b border-gray-400"></div>
+                        </div>
+                        <p class="text-xs font-bold uppercase text-gray-600">Assinatura do Motorista</p>
                     </div>
-                    <p class="text-xs font-bold uppercase text-gray-600">Assinatura do Motorista</p>
-                </div>
-                <div class="text-center space-y-4">
-                    <div class="h-16 flex items-end justify-center">
-                        <div class="w-64 border-b border-gray-400"></div>
+                    <div class="text-center space-y-4">
+                        <div class="h-16 flex items-end justify-center">
+                            <div class="w-64 border-b border-gray-400"></div>
+                        </div>
+                        <p class="text-xs font-bold uppercase text-gray-600">Nome e assinatura do Oficial da STRL</p>
                     </div>
-                    <p class="text-xs font-bold uppercase text-gray-600">Nome e assinatura do Oficial da STRL</p>
                 </div>
-            </div>
 
-            <!-- Botões Fixos no Mobile -->
-            <div class="pt-8 flex flex-col sm:flex-row gap-4 justify-center no-print">
-                <button type="button" onclick="gerarPDF()" class="w-full sm:w-auto bg-red-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-red-700 transform active:scale-95 transition flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                    Gerar PDF
-                </button>
-                <button type="button" onclick="gerarExcel()" class="w-full sm:w-auto bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-emerald-700 transform active:scale-95 transition flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Exportar Excel
-                </button>
-                <button type="reset" class="w-full sm:w-auto bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-bold hover:bg-gray-300 transition">
-                    Limpar Tudo
-                </button>
-            </div>
-        </form>
+                <!-- Botões -->
+                <div class="pt-8 flex flex-col sm:flex-row gap-4 justify-center no-print">
+                    <button type="button" onclick="gerarPDFRelatorio()" class="w-full sm:w-auto bg-red-600 text-white px-8 py-3 rounded-lg font-bold shadow hover:bg-red-700 transition flex items-center justify-center gap-2 uppercase">Gerar PDF Relatório</button>
+                    <button type="button" onclick="gerarExcelRelatorio()" class="w-full sm:w-auto bg-emerald-600 text-white px-8 py-3 rounded-lg font-bold shadow hover:bg-emerald-700 transition flex items-center justify-center gap-2 uppercase">Exportar Excel</button>
+                    <button type="reset" class="w-full sm:w-auto bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-bold hover:bg-gray-300 transition uppercase">Limpar</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
-        // Inicializar Tabelas
+        // Gerenciamento de Páginas
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            
+            document.getElementById('page-' + pageId).classList.add('active');
+            document.getElementById('btn-' + pageId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // --- FUNÇÕES DO CADASTRO (IDENTIFICAÇÃO) ---
+        async function gerarPDFCadastro() {
+            const { jsPDF } = window.jspdf;
+            // Formato Cartão: ~85mm x 55mm (em pontos: 241pt x 156pt)
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'pt',
+                format: [241, 156]
+            });
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            
+            // Fundo e Borda
+            doc.setFillColor(30, 64, 175);
+            doc.rect(0, 0, pageWidth, 40, 'F'); // Cabeçalho Azul
+            
+            // Título no Cabeçalho
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text("IDENTIFICAÇÃO DE ACESSO", pageWidth/2, 18, { align: 'center' });
+            doc.setFontSize(7);
+            doc.text("CENTRO DE LOGÍSTICO DA AERONÁUTICA", pageWidth/2, 30, { align: 'center' });
+
+            // Dados do Cartão
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(8);
+            
+            const xPos = 15;
+            let yPos = 60;
+            const spacing = 22;
+
+            const campos = [
+                { label: "MOTORISTA:", value: document.getElementById('cad_nome').value },
+                { label: "MISSÃO:", value: document.getElementById('cad_missao').value },
+                { label: "PLACA CAVALO:", value: document.getElementById('cad_placa_cavalo').value },
+                { label: "PLACA REBOQUE:", value: document.getElementById('cad_placa_reboque').value }
+            ];
+
+            campos.forEach(campo => {
+                doc.setFont(undefined, 'bold');
+                doc.text(campo.label, xPos, yPos);
+                doc.setFont(undefined, 'normal');
+                doc.text(campo.value || "---", xPos + 75, yPos);
+                yPos += spacing;
+            });
+
+            // Rodapé do Cartão
+            doc.setFontSize(6);
+            doc.setTextColor(100);
+            doc.text("Válido apenas para controle interno CELOG", pageWidth/2, pageHeight - 10, { align: 'center' });
+
+            doc.save(`Cartao_Identificacao_${document.getElementById('cad_nome').value || 'Motorista'}.pdf`);
+        }
+
+        // --- FUNÇÕES DO RELATÓRIO (ORIGINAL) ---
         function initTables() {
-            // Etapas 1-8 e 9-16
             const e1 = document.getElementById('etapas_1');
             const e2 = document.getElementById('etapas_2');
             for(let i=1; i<=8; i++) {
-                e1.innerHTML += `<tr><td class="text-center font-bold bg-gray-50">${i.toString().padStart(2,'0')}</td><td><input type="date"></td><td><input type="text" placeholder="..."></td></tr>`;
-                e2.innerHTML += `<tr><td class="text-center font-bold bg-gray-50">${(i+8).toString().padStart(2,'0')}</td><td><input type="date"></td><td><input type="text" placeholder="..."></td></tr>`;
+                e1.innerHTML += `<tr><td class="text-center font-bold bg-gray-50">${i.toString().padStart(2,'0')}</td><td><input type="date"></td><td><input type="text"></td></tr>`;
+                e2.innerHTML += `<tr><td class="text-center font-bold bg-gray-50">${(i+8).toString().padStart(2,'0')}</td><td><input type="date"></td><td><input type="text"></td></tr>`;
             }
 
-            // Combustível 1-10
             const cBody = document.getElementById('combustivel_corpo');
             for(let i=1; i<=10; i++) {
                 cBody.innerHTML += `<tr>
                     <td class="text-center font-bold bg-gray-50">${i}</td>
-                    <td><input type="text"></td>
-                    <td><input type="date"></td>
-                    <td><input type="number"></td>
-                    <td><input type="number" step="0.01"></td>
-                    <td><input type="number" step="0.01"></td>
-                    <td><input type="text"></td>
+                    <td><input type="text"></td><td><input type="date"></td><td><input type="number"></td><td><input type="number" step="0.01"></td><td><input type="number" step="0.01"></td><td><input type="text"></td>
                 </tr>`;
             }
 
-            // Cargas 1-10
             const cgBody = document.getElementById('cargas_corpo');
             for(let i=1; i<=10; i++) {
                 cgBody.innerHTML += `<tr>
                     <td class="text-center font-bold bg-gray-50">${i}</td>
-                    <td><input type="text"></td>
-                    <td><input type="date"></td>
-                    <td><input type="text"></td>
-                    <td><input type="text"></td>
-                    <td><input type="text"></td>
-                    <td><input type="text"></td>
+                    <td><input type="text"></td><td><input type="date"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td>
                 </tr>`;
             }
         }
 
-        initTables();
-
-        // Geração de PDF
-        async function gerarPDF() {
+        async function gerarPDFRelatorio() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'pt', 'a4');
             const pageWidth = doc.internal.pageSize.getWidth();
             
-            // Título
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
+            doc.setFontSize(14); doc.setFont(undefined, 'bold');
             doc.text("CENTRO DE LOGÍSTICO DA AERONÁUTICA", pageWidth/2, 40, { align: 'center' });
-            doc.setFontSize(12);
-            doc.text("Ficha de Motorista Relatório de Viagem", pageWidth/2, 60, { align: 'center' });
+            doc.setFontSize(12); doc.text("Ficha de Motorista Relatório de Viagem", pageWidth/2, 60, { align: 'center' });
             
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10); doc.setFont(undefined, 'normal');
             const relNum = document.getElementById('relatorio_num').value || '___';
             const relAno = document.getElementById('relatorio_ano').value || '2025';
             const osNum = document.getElementById('os_num').value || '____';
-            doc.text(`Nº ${relNum}/STRL/${relAno} - Missão OS Nº ${osNum}/CELOG/2025`, pageWidth/2, 80, { align: 'center' });
+            const osAno = document.getElementById('os_ano').value || '2025';
+            doc.text(`Nº ${relNum}/STRL/${relAno} - Missão OS Nº ${osNum}/CELOG/${osAno}`, pageWidth/2, 80, { align: 'center' });
 
-            // Helper para seções
             const drawSection = (title, y) => {
-                doc.setFillColor(240, 240, 240);
-                doc.rect(40, y, 515, 18, 'F');
-                doc.setFont(undefined, 'bold');
-                doc.text(title, 45, y + 13);
-                doc.setFont(undefined, 'normal');
-                return y + 25;
+                doc.setFillColor(240, 240, 240); doc.rect(40, y, 515, 18, 'F');
+                doc.setFont(undefined, 'bold'); doc.text(title, 45, y + 13);
+                doc.setFont(undefined, 'normal'); return y + 25;
             };
 
             let currentY = 100;
-            
-            // Dados Motorista
             currentY = drawSection("DADOS DO MOTORISTA E VEÍCULO", currentY);
-            doc.text(`Nome: ${document.getElementById('motorista_nome').value}`, 45, currentY);
-            doc.text(`CPF: ${document.getElementById('motorista_cpf').value} | RA: ${document.getElementById('motorista_ra').value} | Saram: ${document.getElementById('motorista_saram').value}`, 45, currentY + 15);
-            doc.text(`Veículo: ${document.getElementById('veiculo_modelo').value} | REG FAB: ${document.getElementById('veiculo_reg').value} | Placa: ${document.getElementById('veiculo_placa').value}`, 45, currentY + 30);
-            currentY += 45;
+            currentY += 5;
+            doc.text(`Nome: ${document.getElementById('motorista_nome').value}`, 45, currentY + 10);
+            doc.text(`CPF: ${document.getElementById('motorista_cpf').value} | RA: ${document.getElementById('motorista_ra').value} | Saram: ${document.getElementById('motorista_saram').value}`, 45, currentY + 25);
+            doc.text(`Veículo: ${document.getElementById('veiculo_modelo').value} | REG FAB: ${document.getElementById('veiculo_reg').value} | Placa: ${document.getElementById('veiculo_placa').value}`, 45, currentY + 40);
+            currentY += 60;
 
-            // Dados Viagem
             currentY = drawSection("DADOS DA VIAGEM", currentY);
-            doc.text(`Origem: ${document.getElementById('viagem_origem').value} | Destino: ${document.getElementById('viagem_destino').value}`, 45, currentY);
-            doc.text(`Saída: ${document.getElementById('saida_data').value} ${document.getElementById('saida_hora').value} (KM: ${document.getElementById('saida_km').value})`, 45, currentY + 15);
-            doc.text(`Chegada: ${document.getElementById('chegada_data').value} ${document.getElementById('chegada_hora').value} (KM: ${document.getElementById('chegada_km').value})`, 45, currentY + 30);
-            currentY += 40;
+            currentY += 5;
+            doc.text(`Origem: ${document.getElementById('viagem_origem').value} | Destino: ${document.getElementById('viagem_destino').value}`, 45, currentY + 10);
+            doc.text(`Saída: ${document.getElementById('saida_data').value} ${document.getElementById('saida_hora').value} (KM: ${document.getElementById('saida_km').value})`, 45, currentY + 25);
+            doc.text(`Chegada: ${document.getElementById('chegada_data').value} ${document.getElementById('chegada_hora').value} (KM: ${document.getElementById('chegada_km').value})`, 45, currentY + 40);
+            currentY += 55;
 
-            // Tabelas de Etapas
+            currentY = drawSection("ETAPAS DA MISSÃO", currentY);
             doc.autoTable({
                 startY: currentY,
                 head: [['Etapa', 'Data', 'Local', 'Etapa', 'Data', 'Local']],
                 body: Array.from({length: 8}, (_, i) => {
                     const row1 = document.getElementById('etapas_1').rows[i].cells;
                     const row2 = document.getElementById('etapas_2').rows[i].cells;
-                    return [
-                        row1[0].innerText, row1[1].firstChild.value, row1[2].firstChild.value,
-                        row2[0].innerText, row2[1].firstChild.value, row2[2].firstChild.value
-                    ];
+                    return [row1[0].innerText, row1[1].firstChild.value, row1[2].firstChild.value, row2[0].innerText, row2[1].firstChild.value, row2[2].firstChild.value];
                 }),
-                theme: 'grid',
-                styles: { fontSize: 8, cellPadding: 2 },
-                headStyles: { fillColor: [30, 64, 175] }
+                theme: 'grid', styles: { fontSize: 8 }, headStyles: { fillColor: [100, 100, 100] }
             });
 
-            // Combustível
+            currentY = doc.lastAutoTable.finalY + 15;
+            currentY = drawSection("DADOS DO COMBUSTÍVEL", currentY);
             doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 15,
+                startY: currentY,
                 head: [['Nº', 'OM', 'Data', 'KM', 'Litros', 'Arla', 'Abastecedor']],
-                body: Array.from(document.getElementById('combustivel_corpo').rows).map(r => 
-                    Array.from(r.cells).map(c => c.firstChild?.value || c.innerText)
-                ).filter(r => r[1] !== ""),
-                theme: 'grid',
-                styles: { fontSize: 7, cellPadding: 2 },
-                headStyles: { fillColor: [30, 64, 175] }
+                body: Array.from(document.getElementById('combustivel_corpo').rows).map(r => Array.from(r.cells).map(c => c.firstChild?.value || c.innerText)).filter(r => r[1] !== ""),
+                theme: 'grid', styles: { fontSize: 7 }, headStyles: { fillColor: [100, 100, 100] }
             });
 
-            // Cargas
+            currentY = doc.lastAutoTable.finalY + 15;
+            currentY = drawSection("RESUMO DE CARGAS TRANSPORTADAS", currentY);
             doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 15,
+                startY: currentY,
                 head: [['Nº', 'Manifesto/GMV', 'Data', 'Peso', 'Cubagem', 'Itens', 'Recebedor']],
-                body: Array.from(document.getElementById('cargas_corpo').rows).map(r => 
-                    Array.from(r.cells).map(c => c.firstChild?.value || c.innerText)
-                ).filter(r => r[1] !== ""),
-                theme: 'grid',
-                styles: { fontSize: 7, cellPadding: 2 },
-                headStyles: { fillColor: [30, 64, 175] }
+                body: Array.from(document.getElementById('cargas_corpo').rows).map(r => Array.from(r.cells).map(c => c.firstChild?.value || c.innerText)).filter(r => r[1] !== ""),
+                theme: 'grid', styles: { fontSize: 7 }, headStyles: { fillColor: [100, 100, 100] }
             });
 
-            // Observações
             currentY = doc.lastAutoTable.finalY + 20;
             if(currentY > 700) { doc.addPage(); currentY = 40; }
             currentY = drawSection("OBSERVAÇÕES E INCIDENTES", currentY);
-            doc.setFontSize(9);
-            const obs = document.getElementById('observacoes').value || "Sem ocorrências";
-            doc.text(doc.splitTextToSize(obs, 500), 45, currentY + 10);
+            doc.text(doc.splitTextToSize(document.getElementById('observacoes').value || "Sem ocorrências", 500), 45, currentY + 10);
+            
+            currentY += 80;
+            if(currentY > 750) { doc.addPage(); currentY = 60; }
+            doc.line(60, currentY, 260, currentY); doc.line(335, currentY, 535, currentY);
+            doc.setFontSize(8); doc.setFont(undefined, 'bold');
+            doc.text("ASSINATURA DO MOTORISTA", 160, currentY + 15, { align: 'center' });
+            doc.text("NOME E ASSINATURA DO OFICIAL DA STRL", 435, currentY + 15, { align: 'center' });
 
-            doc.save(`Relatorio_Viagem_${relNum}_${relAno}.pdf`);
+            doc.save(`Relatorio_Viagem_${relNum}.pdf`);
         }
 
-        // Geração de Excel
-        function gerarExcel() {
+        function gerarExcelRelatorio() {
             const wb = XLSX.utils.book_new();
-            
-            // Dados do Cabeçalho
-            const headerData = [
-                ["CENTRO DE LOGÍSTICO DA AERONÁUTICA"],
-                ["Ficha de Motorista Relatório de Viagem"],
-                ["Relatório Nº", document.getElementById('relatorio_num').value, "Ano", document.getElementById('relatorio_ano').value],
-                ["OS Nº", document.getElementById('os_num').value],
-                [],
-                ["DADOS DO MOTORISTA"],
-                ["Nome", document.getElementById('motorista_nome').value],
-                ["CPF", document.getElementById('motorista_cpf').value, "RA", document.getElementById('motorista_ra').value, "Saram", document.getElementById('motorista_saram').value],
-                ["Veículo", document.getElementById('veiculo_modelo').value, "Placa", document.getElementById('veiculo_placa').value],
-                [],
-                ["RESUMO DE CARGAS"]
-            ];
-
-            const ws = XLSX.utils.aoa_to_sheet(headerData);
-            
-            // Adicionar Cargas
-            const cargas = Array.from(document.getElementById('cargas_corpo').rows).map(r => 
-                Array.from(r.cells).map(c => c.firstChild?.value || c.innerText)
-            ).filter(r => r[1] !== "");
-            
-            XLSX.utils.sheet_add_aoa(ws, [["Nº", "Manifesto", "Data", "Peso", "Cubagem", "Itens", "Recebedor"]], {origin: -1});
-            XLSX.utils.sheet_add_aoa(ws, cargas, {origin: -1});
-
+            const ws = XLSX.utils.aoa_to_sheet([["RELATÓRIO DE VIAGEM"], ["Motorista", document.getElementById('motorista_nome').value]]);
             XLSX.utils.book_append_sheet(wb, ws, "Relatório");
-            XLSX.writeFile(wb, `Relatorio_Viagem_${document.getElementById('relatorio_num').value}.xlsx`);
+            XLSX.writeFile(wb, `Relatorio_Viagem.xlsx`);
         }
+
+        initTables();
     </script>
 </body>
 </html>
