@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema CELOG - Relatórios e Cadastros</title>
+    <title>Sistema CELOG - Relatório de Viagem</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -63,81 +63,14 @@
             border: none !important;
             border-radius: 0 !important;
         }
-
-        .nav-link {
-            transition: all 0.3s;
-        }
-        
-        .nav-link.active {
-            background-color: #1e40af;
-            color: white;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
     
-    <!-- Menu de Navegação Superior -->
-    <nav class="bg-blue-900 text-white shadow-lg no-print sticky top-0 z-50">
-        <div class="max-w-5xl mx-auto px-4">
-            <div class="flex justify-between items-center h-16">
-                <div class="font-black text-xl tracking-tighter">CELOG LOG</div>
-                <div class="flex space-x-2">
-                    <button onclick="showPage('relatorio')" id="btn-relatorio" class="nav-link px-4 py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-blue-800 active uppercase">Relatório de Viagem</button>
-                    <button onclick="showPage('cadastro')" id="btn-cadastro" class="nav-link px-4 py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-blue-800 uppercase">Identificação Motorista</button>
-                </div>
-            </div>
-        </div>
-    </nav>
-
     <div class="max-w-5xl mx-auto p-2 sm:p-4 md:p-8">
         
-        <!-- PÁGINA: IDENTIFICAÇÃO DE MOTORISTA E CAMINHÃO (CADASTRO) -->
-        <div id="page-cadastro" class="page bg-white p-6 sm:p-10 shadow-xl rounded-xl border border-gray-200">
-            <div class="text-center mb-10 border-b pb-8">
-                <h1 class="text-2xl sm:text-3xl font-black text-blue-900 uppercase">Identificação de Motorista e Caminhão</h1>
-                <p class="text-gray-500 mt-2">Formulário de identificação e controle de acesso</p>
-            </div>
-
-            <form id="formCadastro" class="space-y-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-2">
-                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Nome do Motorista</label>
-                        <input type="text" id="cad_nome" placeholder="Digite o nome completo" class="bg-gray-50">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Qual tipo de missão será</label>
-                        <input type="text" id="cad_missao" placeholder="Ex: Transporte de Carga, Puxe, etc." class="bg-gray-50">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Placa do Cavalo Mecânico</label>
-                        <input type="text" id="cad_placa_cavalo" placeholder="ABC-1234" class="bg-gray-50">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wide">Placa do Semirreboque</label>
-                        <input type="text" id="cad_placa_reboque" placeholder="XYZ-5678" class="bg-gray-50">
-                    </div>
-                </div>
-
-                <div class="pt-10 border-t flex flex-col sm:flex-row justify-center gap-4">
-                    <button type="button" onclick="gerarPDFCadastro()" class="bg-red-600 text-white px-10 py-4 rounded-lg font-black shadow-lg hover:bg-red-700 transition flex items-center justify-center gap-2 uppercase">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                        Baixar PDF de Identificação
-                    </button>
-                    <button type="reset" class="bg-gray-200 text-gray-700 px-10 py-4 rounded-lg font-bold hover:bg-gray-300 transition uppercase">Limpar</button>
-                </div>
-            </form>
-        </div>
-
         <!-- PÁGINA: RELATÓRIO DE VIAGEM (ORIGINAL FIEL) -->
-        <div id="page-relatorio" class="page active bg-white p-4 sm:p-8 shadow-xl rounded-xl border border-gray-200">
+        <div id="page-relatorio" class="bg-white p-4 sm:p-8 shadow-xl rounded-xl border border-gray-200">
             <div class="text-center mb-8 border-b-2 pb-6">
                 <h1 class="text-lg sm:text-2xl font-black text-blue-900 uppercase">Centro de Logístico da Aeronáutica</h1>
                 <h2 class="text-md sm:text-xl font-bold text-gray-700 mt-1">Ficha de Motorista Relatório de Viagem</h2>
@@ -385,73 +318,6 @@
     </div>
 
     <script>
-        // Gerenciamento de Páginas
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            
-            document.getElementById('page-' + pageId).classList.add('active');
-            document.getElementById('btn-' + pageId).classList.add('active');
-            window.scrollTo(0, 0);
-        }
-
-        // --- FUNÇÕES DO CADASTRO (IDENTIFICAÇÃO) ---
-        async function gerarPDFCadastro() {
-            const { jsPDF } = window.jspdf;
-            // Formato Cartão: ~85mm x 55mm (em pontos: 241pt x 156pt)
-            const doc = new jsPDF({
-                orientation: 'landscape',
-                unit: 'pt',
-                format: [241, 156]
-            });
-
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            
-            // Fundo e Borda
-            doc.setFillColor(30, 64, 175);
-            doc.rect(0, 0, pageWidth, 40, 'F'); // Cabeçalho Azul
-            
-            // Título no Cabeçalho
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'bold');
-            doc.text("IDENTIFICAÇÃO DE ACESSO", pageWidth/2, 18, { align: 'center' });
-            doc.setFontSize(7);
-            doc.text("CENTRO DE LOGÍSTICO DA AERONÁUTICA", pageWidth/2, 30, { align: 'center' });
-
-            // Dados do Cartão
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(8);
-            
-            const xPos = 15;
-            let yPos = 60;
-            const spacing = 22;
-
-            const campos = [
-                { label: "MOTORISTA:", value: document.getElementById('cad_nome').value },
-                { label: "MISSÃO:", value: document.getElementById('cad_missao').value },
-                { label: "PLACA CAVALO:", value: document.getElementById('cad_placa_cavalo').value },
-                { label: "PLACA REBOQUE:", value: document.getElementById('cad_placa_reboque').value }
-            ];
-
-            campos.forEach(campo => {
-                doc.setFont(undefined, 'bold');
-                doc.text(campo.label, xPos, yPos);
-                doc.setFont(undefined, 'normal');
-                doc.text(campo.value || "---", xPos + 75, yPos);
-                yPos += spacing;
-            });
-
-            // Rodapé do Cartão
-            doc.setFontSize(6);
-            doc.setTextColor(100);
-            doc.text("Válido apenas para controle interno CELOG", pageWidth/2, pageHeight - 10, { align: 'center' });
-
-            doc.save(`Cartao_Identificacao_${document.getElementById('cad_nome').value || 'Motorista'}.pdf`);
-        }
-
-        // --- FUNÇÕES DO RELATÓRIO (ORIGINAL) ---
         function initTables() {
             const e1 = document.getElementById('etapas_1');
             const e2 = document.getElementById('etapas_2');
@@ -501,18 +367,18 @@
 
             let currentY = 100;
             currentY = drawSection("DADOS DO MOTORISTA E VEÍCULO", currentY);
-            currentY += 5;
+            currentY += 15;
             doc.text(`Nome: ${document.getElementById('motorista_nome').value}`, 45, currentY + 10);
-            doc.text(`CPF: ${document.getElementById('motorista_cpf').value} | RA: ${document.getElementById('motorista_ra').value} | Saram: ${document.getElementById('motorista_saram').value}`, 45, currentY + 25);
-            doc.text(`Veículo: ${document.getElementById('veiculo_modelo').value} | REG FAB: ${document.getElementById('veiculo_reg').value} | Placa: ${document.getElementById('veiculo_placa').value}`, 45, currentY + 40);
-            currentY += 60;
+            doc.text(`CPF: ${document.getElementById('motorista_cpf').value} | RA: ${document.getElementById('motorista_ra').value} | Saram: ${document.getElementById('motorista_saram').value}`, 45, currentY + 30);
+            doc.text(`Veículo: ${document.getElementById('veiculo_modelo').value} | REG FAB: ${document.getElementById('veiculo_reg').value} | Placa: ${document.getElementById('veiculo_placa').value}`, 45, currentY + 50);
+            currentY += 75;
 
             currentY = drawSection("DADOS DA VIAGEM", currentY);
-            currentY += 5;
+            currentY += 15;
             doc.text(`Origem: ${document.getElementById('viagem_origem').value} | Destino: ${document.getElementById('viagem_destino').value}`, 45, currentY + 10);
-            doc.text(`Saída: ${document.getElementById('saida_data').value} ${document.getElementById('saida_hora').value} (KM: ${document.getElementById('saida_km').value})`, 45, currentY + 25);
-            doc.text(`Chegada: ${document.getElementById('chegada_data').value} ${document.getElementById('chegada_hora').value} (KM: ${document.getElementById('chegada_km').value})`, 45, currentY + 40);
-            currentY += 55;
+            doc.text(`Saída: ${document.getElementById('saida_data').value} ${document.getElementById('saida_hora').value} (KM: ${document.getElementById('saida_km').value})`, 45, currentY + 30);
+            doc.text(`Chegada: ${document.getElementById('chegada_data').value} ${document.getElementById('chegada_hora').value} (KM: ${document.getElementById('chegada_km').value})`, 45, currentY + 50);
+            currentY += 70;
 
             currentY = drawSection("ETAPAS DA MISSÃO", currentY);
             doc.autoTable({
